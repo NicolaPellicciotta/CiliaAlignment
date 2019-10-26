@@ -1,0 +1,175 @@
+%%  plot for polarisation vs shear stress
+
+clear all;
+close all;
+subdir={...
+...    '11.10.19/control/FL','11.10.19/5rpm/FL','11.10.19/5rpm_2/FL'...
+    '18.10.19/8rpm/FL','18.10.19/8rpm_2/FL','18.10.19/control/FL'...
+}; 
+%%%%%% hole for seeing the correlation lenght
+holes={...
+   'none',...
+    'none',...
+   'none'...
+...     [0:4000]...
+... [0:4000,6415:7195]...
+    };
+
+subdir = strcat('/media/np451/Seagate Backup Plus Drive1/DATA/ependymal_paper/Octorber2019/PIV/',subdir);
+    
+shear_ind=[];
+pol=[];pp=[];
+good=[];
+flow=[];
+npo=[];pol_sign_tot=[];
+shear_um=1700;
+cc=1;
+for jj=1:numel(subdir)
+    cd(subdir{jj}); load('Res3.mat');
+    pol_sign=1;   %%% sign that accounts for the direction of the flow respective to camera 
+    allfolders= regexp(Res.insert_name,'/','split'); 
+    if   isempty(allfolders{end})
+        allfolders=allfolders(1:end-1);
+    end
+    flow_string=allfolders{end-1};
+    if strcmp(allfolders{end-2},'beads'); time_string=allfolders{end-3};
+        else time_string=allfolders{end-2};
+    end
+
+    if strcmp(flow_string,'8rpm') | strcmp(flow_string,'8rpm_2'); Res.flow= 8;
+           elseif strcmp(flow_string,'control'); Res.flow= 0;
+    end
+   
+    N_fov=numel(Res.fov);
+    if jj==1
+    N_fov=numel(Res.fov)-1;
+    end
+    
+    for fov=1:N_fov;
+      
+      if strcmp(time_string,'18.6.18')  & strcmp(flow_string,'0')
+          shear_temp= shear_calculate('tapered',40,shear_um*(floor(1*(shear_um-1)/shear_um)+1));
+      elseif strcmp(time_string,'13.6.18')  & strcmp(flow_string,'0')
+          shear_temp= shear_calculate('tapered',40,shear_um*(floor(2*(shear_um-1)/shear_um)+1));
+      elseif strcmp(time_string,'16.7.18')  & strcmp(flow_string,'0')
+         shear_temp= shear_calculate('tapered',40,shear_um*(floor(3*(shear_um-1)/shear_um)+1));
+      elseif strcmp(time_string,'29.7.18')  & strcmp(flow_string,'0')
+        shear_temp= shear_calculate('tapered',40,shear_um*(floor(4*(shear_um-1)/shear_um)+1));
+      elseif strcmp(flow_string,'100') | strcmp(flow_string,'200') 
+         shear_temp= shear_calculate('straight',10);  Res.flow= 10; pol_sign=-1;
+      elseif strcmp(flow_string,'5A') | strcmp(flow_string,'5B') | strcmp(flow_string,'5C')
+         shear_temp= shear_calculate('straight',5);  Res.flow= 5;
+      elseif strcmp(time_string,'5.4.19') 
+         shear_temp= shear_calculate('straight',40);  Res.flow= 15;
+      elseif strcmp(time_string,'11.10.19')
+          shear_temp= shear_calculate('tapered',5,shear_um*(floor(Res.fov(fov).posx/shear_um)));
+      elseif strcmp(time_string,'18.10.19')
+          shear_temp= shear_calculate('tapered',8,shear_um*(floor(Res.fov(fov).posx/shear_um)));
+
+      else
+         shear_temp= shear_calculate('tapered',40,shear_um*(floor(Res.fov(fov).posx/shear_um)));
+      end
+
+      
+      %ind = Res.fov(fov).ind;
+      nv = Res.fov(fov).nv(:);  %%% load the vectors alonf the 
+      N_vec= numel(nv);
+      %shear_ind=cat(1,shear_ind,shear_temp);
+      shear_ind=cat(1,shear_ind, shear_temp*ones(size(nv)));
+%      shear_ind(cc)= shear_temp;
+%     flow(cc)=Res.flow;
+ 
+
+
+      flow=cat(1,flow,Res.flow*ones(size(nv)));
+      nn= numel(Res.fov(fov).nu)./numel(Res.fov(fov).x);
+      npo=cat(1,npo,nn*ones(size(nv)));
+   
+      if  isa(holes{jj},'char'); if strcmp(holes{jj},'none');good=cat(1,good,1*ones(size(nv)));end
+      elseif any(Res.fov(fov).posx == holes{jj}); good=cat(1,good,0*ones(size(nv))); 
+      else good=cat(1,good,1*ones(size(nv))); 
+      end
+%      disp(strcat('fov=',num2str(fov)));disp(strcat('good',num2str(numel(good))));
+%   
+%      if  isa(holes{jj},'char'); if strcmp(holes{jj},'none');good(cc)=1;end
+%       elseif any(Res.fov(fov).posx == holes{jj}); good(cc)=0; 
+%       else good(cc)=1; 
+%       end
+%   
+
+
+    %%%% the experiment with 40rpm2 have teh flow direction reverted
+%       if ~strcmp(flow_string,'40rpm2') | strcmp(flow_string,'5rpm'); 
+%       elseif strcmp(flow_string,'40rpm2')| strcmp(flow_string,'5rpm_2');
+%           pol_sign=-1;;
+%       end
+
+    if strcmp(flow_string,'8rpm_2'); pol_sign=-1;;end
+      pol_sign_tot(cc)=pol_sign; 
+
+      pp= cat(1,pp,pol_sign*nv); 
+%      pol= cat(1,pol,pol_sign*(Res.fov(fov).Polx));
+%      pol(cc)= pol_sign*(Res.fov(fov).Polx);
+ 
+      cc=cc+1;
+   end
+end
+%    good=ones(size(pol));
+    good=logical(good);
+    
+%    Pol=pol(good);
+    Pol=pp(good);
+
+    Npo=npo(good);
+%    Time=time(good);
+    Flow= flow(good);
+    Shear_ind=shear_ind(good);
+    %%%
+    [G,idshear,idflow]=findgroups(Shear_ind,Flow);
+%    G=G';Pol=Pol';Npo=Npo';
+    
+    POL=accumarray(G,Pol,[],@median); 
+    ePOL=accumarray(G,Pol,[],@std)./sqrt(accumarray(G,Pol,[],@numel)) ;
+    NPO=accumarray(G,Npo,[],@median); 
+    eNPO=accumarray(G,Npo,[],@std)./sqrt(accumarray(G,Npo,[],@numel)) ;
+
+    
+  ind_c= (idflow==0);
+  ind_tap = (idflow==8); 
+  ind_str = (idflow~=40) & (idflow~=0); 
+  ms=10;lw=2;
+  
+  shear_tap= idshear(ind_tap);
+shear_c= idshear(ind_c);
+shear_str= idshear(ind_str);
+
+%%
+  %%%% polarisation vs shear stress
+ ms=8 ; lw=1
+ errorbar(shear_c,POL(ind_c),ePOL(ind_c),'k^','MarkerSize',ms,'LineWidth',lw,'MarkerFaceColor','k');hold on;
+%errorbar(shear_str,POL(ind_str),ePOL(ind_str),'ro','MarkerSize',ms,'LineWidth',lw,'MarkerFaceColor','r');hold on;
+errorbar(shear_tap,POL(ind_tap),ePOL(ind_tap),'bd','MarkerSize',ms,'LineWidth',lw,'MarkerFaceColor','b');hold on;
+% xlabel('Shear stress [dyne/c$m^2$]','Interpreter','latex') ;ylabel('Polarisation','Interpreter','latex');
+ ylim([-1,1]); %xlim([0,5])
+ x0=0;y0=0;width=300;height=300;
+set(gcf,'position',[x0,y0,width,height])
+set(gca,'FontSize',13);
+legend({'control','tapered',},'Interpreter','latex')
+%saveas(gcf,'/u/homes/np451/Dropbox/alignment with the flow/figure2/polarisation_shear_lintap.pdf')
+%saveas(gcf,'/media/np451/Seagate Backup Plus Drive1/DATA/ependymal_paper/March2019/PIV/figures/polarisation_shear_lintap.pdf')
+%%
+    %%%%% numbero fo cells vs shear stress
+figure()
+    errorbar(shear_c,NPO(ind_c),eNPO(ind_c),'k^','MarkerSize',ms,'LineWidth',lw,'MarkerFaceColor','k');hold on;
+ errorbar(shear_exp,NPO(ind_exp),eNPO(ind_exp),'ro','MarkerSize',ms,'LineWidth',lw,'MarkerFaceColor','r');
+ xlabel('Shear stress [dyne/c$m^2$]','Interpreter','latex') ;ylabel('Cell density','Interpreter','latex');
+ %xlim([0,5])
+ x0=0;y0=0;width=600;height=500;
+set(gcf,'position',[x0,y0,width,height])
+set(gca,'FontSize',15);
+saveas(gcf,'/media/np451/Seagate Backup Plus Drive1/DATA/ependymal_paper/March2019/PIV/figures/density_shear.pdf')
+
+%%
+
+
+

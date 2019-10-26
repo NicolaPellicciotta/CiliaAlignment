@@ -1,0 +1,43 @@
+<temika>
+	<microscope>
+		<eclipsetie>
+			<light_path>L100</light_path>
+		</eclipsetie>
+	</microscope>
+
+		<timestamp>0</timestamp>
+
+
+
+	<!-- Position x=-250y=-250 -->
+		<!-- MOVE -->
+		<microscope>
+			<xystage axis="x">
+				<move_absolute>-250 5</move_absolute>
+			</xystage>
+			<xystage axis="y">
+				<move_absolute>-250 5</move_absolute>
+			</xystage>
+			<xystage axis="x">
+				<wait_moving_end></wait_moving_end>
+			</xystage>
+			<xystage axis="y">
+				<wait_moving_end></wait_moving_end>
+			</xystage>
+		</microscope>
+		<!-- SET NAME -->
+		<save>
+			<basename>/home/np451/data/40X_X-250Y-250</basename>
+			<append>DATE</append>
+		</save>
+		<!-- Turn on the light -->
+		<sleep>0:0:3</sleep>
+		<!-- Take a record -->
+		<camera name="IIDC Point Grey Research Grasshopper3 GS3-U3-23S6M"><record>ON</record></camera>
+		<sleep>0:0:3</sleep>
+		<camera name="IIDC Point Grey Research Grasshopper3 GS3-U3-23S6M"><record>OFF</record></camera>
+		<sleep>0:0:1.0</sleep>
+
+
+
+</temika>
